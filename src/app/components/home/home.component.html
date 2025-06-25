@@ -1,0 +1,13 @@
+<app-header></app-header>
+<div class="container">
+  @for(item of listaCompras$ | async; track item.nome) {
+  <p>
+    {{ item | json }}
+  </p>
+  }
+
+  <hr>
+
+  <input type="search" [(ngModel)]="valorBuscarProduto" (keyup.enter)="obterProduto()" />
+  <p>{{ (produtoEncontrado$ | async)?.nome }}</p>
+</div>
