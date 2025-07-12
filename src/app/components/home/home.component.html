@@ -1,13 +1,78 @@
 <app-header></app-header>
-<div class="container">
-  @for(item of listaCompras$ | async; track item.nome) {
-  <p>
-    {{ item | json }}
-  </p>
-  }
 
-  <hr>
-
-  <input type="search" [(ngModel)]="valorBuscarProduto" (keyup.enter)="obterProduto()" />
-  <p>{{ (produtoEncontrado$ | async)?.nome }}</p>
+<div class="flex justify-content-center">
+  <div class="grid w-full container justify-content-center">
+    <div class="col-12 md:col-4" *ngFor="let lista of listasCompras">
+      <div class="card">
+        <p-toast />
+        <p-table #table [value]="lista.products" dataKey="id" editMode="row" class="p-datatable-sm w-full">
+          <ng-template #caption>
+            <div class="flex align-items-center justify-content-between">
+              <span class="text-xl font-bold">Lista: {{ lista.title }}</span>
+              <p-button pRipple label="Produto" icon="pi pi-plus" class="p-button-sm" (click)="onAddNewRow(lista, table)" [disabled]="disableNewButton" />
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="w-1">Ações</th>
+              <th class="w-3">Nome</th>
+              <th class="w-1">Unidade</th>
+              <th class="w-1">Quantidade</th>
+              <th class="w-1">Comprado?</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-rowData let-editing="editing" let-ri="rowIndex">
+            <tr [pEditableRow]="rowData">
+              <td>
+                <div class="flex align-items-center justify-content-center gap-2">
+                  <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil"
+                    (click)="onRowEditInit(rowData)" class="p-button-rounded p-button-text"></button>
+                  <button *ngIf="!editing" pButton pRipple type="button" icon="pi pi-trash" title="Excluir"
+                    (click)="onDeleteRow($event, rowData)" class="p-button-rounded p-button-text p-button-danger">
+                  </button>
+                  <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check"
+                    (click)="onRowEditSave(rowData)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                  <button *ngIf="editing" pButton pRipple type="button" pCancelEditableRow icon="pi pi-times"
+                    (click)="onRowEditCancel(rowData, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+                </div>
+              </td>
+              <td>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <input pInputText type="text" [(ngModel)]="rowData.name" style="max-width: 10rem;" />
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{rowData.name}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <input pInputText type="number" [(ngModel)]="rowData.unity" style="max-width: 5rem;" min="1" max="7" />
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{rowData.unity}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <input pInputText type="number" [(ngModel)]="rowData.amount" style="max-width: 5rem;" min="0" />
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{rowData.amount}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td>
+                <p-tableCheckbox [value]="rowData" />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
 </div>
