@@ -13,7 +13,7 @@ export class ProductsService {
   public product$ = this.productsSubject.asObservable();
 
   API_PATH = "https://localhost:7050/api";
-  controller = "product";
+  controller = "produto";
 
   private httpClient = inject(HttpClient);
 

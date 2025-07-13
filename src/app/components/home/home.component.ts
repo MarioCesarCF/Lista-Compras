@@ -3,8 +3,8 @@ import { Produto } from '../../models/produto';
 import { HeaderComponent } from '../header/header.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ShoppingList } from '../../models/shopping-list';
-import { ShoppingListService } from '../../services/shopping-list/shopping-list.service';
+import { ListaCompras } from '../../models/lista-compras';
+import { ListaComprasService } from '../../services/shopping-list/lista-compras-service';
 import { CardModule } from 'primeng/card';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -17,7 +17,11 @@ import { SelectModule } from 'primeng/select';
 import { ProductsService } from '../../services/products/products.service';
 import { ProdutoCreateRequest } from '../../models/interfaces/products/produto-create-request';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AddProductToList } from '../../models/interfaces/shoppingLists/add-product-list';
+import { AdicionaProdutoNaLista } from '../../models/interfaces/shoppingLists/add-produto-lista';
+import { ItemLista } from '../../models/item-lista';
+import { DialogModule } from 'primeng/dialog';
+import { CriaListaCompras } from '../../models/interfaces/shoppingLists/cria-lista-compras';
+import { ItemListaToAdd } from '../../models/interfaces/products/item-lista-to-add';
 
 @Component({
   selector: 'app-home',
@@ -32,7 +36,8 @@ import { AddProductToList } from '../../models/interfaces/shoppingLists/add-prod
     CheckboxModule,
     RippleModule,
     ToastModule,
-    SelectModule
+    SelectModule,
+    DialogModule
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
@@ -40,26 +45,43 @@ import { AddProductToList } from '../../models/interfaces/shoppingLists/add-prod
 })
 export class HomeComponent {
   @ViewChild(Table, { read: Table }) pTable: Table | undefined;
-  listasCompras!: ShoppingList[];
+  listasCompras!: ListaCompras[];
   products!: Produto[];
   clonedProducts: { [s: string]: Produto } = {};
   disableNewButton: boolean = false;
-  unityOptions: EnumDTO<number>[] = [];
+  unityOptions!: EnumDTO<number>[];
+  dialogVisible: boolean = false;
+  nomeLista: string = '';
+  limiteListas: number = 0;
 
   constructor(
-    private shoppingListService: ShoppingListService,
+    private listaComprasService: ListaComprasService,
     private produtoService: ProductsService,
     private messageService: MessageService
   ) { }
 
   ngOnInit(): void {
-    this.loadListas();
     this.loadEnums();
+    this.loadListas();
   }
 
   loadListas(): void {
-    this.shoppingListService.getAll().subscribe({
-      next: (result) => this.listasCompras = result
+    this.listaComprasService.getAll().subscribe({
+      next: (result) => {
+        this.listasCompras = result;
+        this.listasCompras.forEach(lista => {
+          lista.itemLista.forEach(item => {
+            let teste: EnumDTO<number> = {
+              descricao: "string",
+              nome: "string",
+              valor: 1
+            };
+            item.unidade = this.unityOptions.find(opt => opt.valor === item.unidade?.valor) ?? teste;
+          });
+        });
+        console.log(this.listasCompras)
+        this.limiteListas = this.listasCompras.length;
+      }
     });
   }
 
@@ -70,25 +92,25 @@ export class HomeComponent {
   }
 
   editProduct(produto: Produto) {
-    console.log(`O produto ${produto.name} será editado aqui. Acho que pode ser edição inline`)
+    console.log(`O produto ${produto.nome} será editado aqui. Acho que pode ser edição inline`)
     return;
   }
 
   onDeleteRow(event: Event, produto: Produto) {
-    console.log(`O produto ${produto.name} será excluído aqui. Deve ter uma confirmação`)
+    console.log(`O produto ${produto.nome} será excluído aqui. Deve ter uma confirmação`)
     return;
   }
 
-  marcaComoComprado(lista: ShoppingList, produto: Produto) {
+  marcaComoComprado(lista: ListaCompras, produto: Produto) {
     console.log("A situação do produto é alterada para Inativo")
     return;
   }
 
-  addProduct(lista: ShoppingList) {
+  addProduct(lista: ListaCompras) {
     return;
   }
 
-  deleteList(lista: ShoppingList) {
+  deleteList(lista: ListaCompras) {
     return;
   }
 
@@ -96,36 +118,30 @@ export class HomeComponent {
     this.clonedProducts[product.id] = { ...product };
   }
 
-  onRowEditSave(lista: ShoppingList, product: Produto) {
-    if (product.id) {
+  onRowEditSave(lista: ListaCompras, produto: Produto) {
+    if (produto.id) {
       //Edição aqui
     } else {
-      var novoProduto: ProdutoCreateRequest = {
-        name: product.name,
-        amount: product.amount,
-        unity: product.unity.valor
+      const itemLista: ItemListaToAdd = {
+        produtoId: '',
+        nome: produto.nome,
+        quantidade: produto.quantidade,
+        unidade: produto.unidade.valor
       }
 
-      var produtoCadatrado!: Produto;
+      const request: AdicionaProdutoNaLista = {
+        listaComprasId: lista.id,
+        itemLista: itemLista
+      }
 
-      this.produtoService.createProduto(novoProduto).subscribe({
+      this.listaComprasService.addProductToList(request).subscribe({
         next: (result) => {
-          produtoCadatrado = result;
-          const request: AddProductToList = {
-            shoppingListId: lista.id,
-            product: produtoCadatrado
-          }
-
-          this.shoppingListService.addProductToList(request).subscribe({
-            next: (result) => {
-              this.messageService.add({ severity: 'success', summary: 'Success', detail: `Produto ${produtoCadatrado.name} cadastrado com sucesso.` });
-              this.disableNewButton = false;
-              this.loadListas();
-            },
-            error: (err: HttpErrorResponse) => {
-              this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid Price' });
-            }
-          });
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: `Produto adicionado com sucesso.` });
+          this.disableNewButton = false;
+          this.loadListas();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Não foi possível adicionar o item.' });
         }
       });
     }
@@ -136,12 +152,34 @@ export class HomeComponent {
     this.loadListas();
   }
 
-  onAddNewRow(lista: ShoppingList, table: Table) {
+  onAddNewRow(lista: ListaCompras, table: Table) {
     this.disableNewButton = true;
 
-    let addProduct = {} as Produto;
+    let addProduct = {} as ItemLista;
 
-    lista.products.unshift(addProduct);
+    lista.itemLista.unshift(addProduct);
     table.initRowEdit(addProduct);
+  }
+
+  onAddNewLista() {
+    this.dialogVisible = true;
+  }
+
+  salvarNovaLista() {
+    if (this.nomeLista) {
+      const request: CriaListaCompras = {
+        nome: this.nomeLista
+      }
+
+      this.listaComprasService.createList(request).subscribe({
+        next: (result) => {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: `Nova lista cadastrada com sucesso.` });
+          this.loadListas();
+          this.nomeLista = '';
+          this.dialogVisible = false;
+        }
+      })
+    }
+    this.dialogVisible = false;
   }
 }

@@ -2,13 +2,16 @@
 
 <div class="flex justify-content-center">
   <div class="grid w-full container justify-content-center">
+    <div class="w-full">
+      <button pRipple class="p-button-sm" (click)="onAddNewLista()" [disabled]="limiteListas >= 3">Nova Lista</button>
+    </div>
     <div class="col-12 md:col-4" *ngFor="let lista of listasCompras">
       <div class="card">
-        <p-toast />
-        <p-table #table [value]="lista.products" dataKey="id" editMode="row" class="p-datatable-sm w-full">
+        <p-toast />        
+        <p-table #table [value]="lista.itemLista" dataKey="id" editMode="row" class="p-datatable-sm w-full">
           <ng-template #caption>
             <div class="flex align-items-center justify-content-between">
-              <span class="text-xl font-bold">Lista: {{ lista.title }}</span>
+              <span class="text-xl font-bold">Lista: {{ lista.nome }}</span>
               <p-button pRipple label="Produto" icon="pi pi-plus" class="p-button-sm"
                 (click)="onAddNewRow(lista, table)" [disabled]="disableNewButton" />
             </div>
@@ -42,36 +45,37 @@
               <td>
                 <p-cellEditor>
                   <ng-template pTemplate="input">
-                    <input pInputText type="text" [(ngModel)]="rowData.name" style="max-width: 10rem;" />
+                    <input pInputText type="text" [(ngModel)]="rowData.nome" style="max-width: 10rem;" />
                   </ng-template>
                   <ng-template pTemplate="output">
-                    {{rowData.name}}
+                    {{rowData.nome}}
                   </ng-template>
                 </p-cellEditor>
               </td>
               <td>
                 <p-cellEditor>
                   <ng-template pTemplate="input">
-                    <p-select [options]="unityOptions" [(ngModel)]="rowData.unity" appendTo="body" optionLabel="descricao">
-                      <ng-template let-unity pTemplate="item">
+                    <p-select [options]="unityOptions" [(ngModel)]="rowData.unidade" appendTo="body"
+                      optionLabel="descricao">
+                      <ng-template let-unidade pTemplate="item">
                         <div class="unity-item">
-                          <div>{{ unity.descricao }}</div>
+                          <div>{{ unidade.descricao }}</div>
                         </div>
                       </ng-template>
                     </p-select>
                   </ng-template>
                   <ng-template pTemplate="output">
-                    {{ rowData.unity?.descricao }}
+                    {{ rowData.unidade?.descricao }}
                   </ng-template>
                 </p-cellEditor>
               </td>
               <td>
                 <p-cellEditor>
                   <ng-template pTemplate="input">
-                    <input pInputText type="number" [(ngModel)]="rowData.amount" style="max-width: 5rem;" min="0" />
+                    <input pInputText type="number" [(ngModel)]="rowData.quantidade" style="max-width: 5rem;" min="0" />
                   </ng-template>
                   <ng-template pTemplate="output">
-                    {{rowData.amount}}
+                    {{rowData.quantidade}}
                   </ng-template>
                 </p-cellEditor>
               </td>
@@ -85,3 +89,14 @@
     </div>
   </div>
 </div>
+
+<p-dialog header="Adicionar nova Lista de Compras." [modal]="true" [(visible)]="dialogVisible" [style]="{ width: '25rem' }">
+  <div class="flex items-center gap-4 mb-4">
+    <label for="nome" class="font-semibold w-24">Nome da Lista:</label>
+    <input pInputText id="nome" [(ngModel)]="nomeLista" class="flex-auto" autocomplete="off" />
+  </div>
+  <div class="flex justify-end gap-2">
+    <p-button label="Cancelar" severity="secondary" (click)="dialogVisible = false" />
+    <p-button label="Salvar" (click)="salvarNovaLista()" />
+  </div>
+</p-dialog>
