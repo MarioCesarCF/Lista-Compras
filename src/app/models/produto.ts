@@ -1,7 +1,9 @@
+import { EnumDTO } from "./interfaces/enum-dto";
+
 export interface Produto {
   id: string,
   name: string,
   amount: number,
-  unity: string,
+  unity: EnumDTO<number>,
   situation: number
 }

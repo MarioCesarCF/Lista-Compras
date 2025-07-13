@@ -12,6 +12,12 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { RippleModule } from 'primeng/ripple';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { EnumDTO } from '../../models/interfaces/enum-dto';
+import { SelectModule } from 'primeng/select';
+import { ProductsService } from '../../services/products/products.service';
+import { ProdutoCreateRequest } from '../../models/interfaces/products/produto-create-request';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AddProductToList } from '../../models/interfaces/shoppingLists/add-product-list';
 
 @Component({
   selector: 'app-home',
@@ -25,32 +31,42 @@ import { ToastModule } from 'primeng/toast';
     ButtonModule,
     CheckboxModule,
     RippleModule,
-    ToastModule
+    ToastModule,
+    SelectModule
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   providers: [MessageService]
 })
 export class HomeComponent {
-  @ViewChild(Table, {read: Table}) pTable: Table | undefined;
+  @ViewChild(Table, { read: Table }) pTable: Table | undefined;
   listasCompras!: ShoppingList[];
   products!: Produto[];
   clonedProducts: { [s: string]: Produto } = {};
   disableNewButton: boolean = false;
+  unityOptions: EnumDTO<number>[] = [];
 
   constructor(
     private shoppingListService: ShoppingListService,
+    private produtoService: ProductsService,
     private messageService: MessageService
   ) { }
 
   ngOnInit(): void {
-    this.loadListas();    
+    this.loadListas();
+    this.loadEnums();
   }
 
   loadListas(): void {
     this.shoppingListService.getAll().subscribe({
       next: (result) => this.listasCompras = result
     });
+  }
+
+  loadEnums() {
+    this.produtoService.getUnitys().subscribe({
+      next: (result) => this.unityOptions = result
+    })
   }
 
   editProduct(produto: Produto) {
@@ -80,15 +96,39 @@ export class HomeComponent {
     this.clonedProducts[product.id] = { ...product };
   }
 
-  onRowEditSave(product: Produto) {
-    if (product.amount > 0) {
-      delete this.clonedProducts[product.id as string];
-      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Product is updated' });
+  onRowEditSave(lista: ShoppingList, product: Produto) {
+    if (product.id) {
+      //Edição aqui
     } else {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid Price' });
+      var novoProduto: ProdutoCreateRequest = {
+        name: product.name,
+        amount: product.amount,
+        unity: product.unity.valor
+      }
+
+      var produtoCadatrado!: Produto;
+
+      this.produtoService.createProduto(novoProduto).subscribe({
+        next: (result) => {
+          produtoCadatrado = result;
+          const request: AddProductToList = {
+            shoppingListId: lista.id,
+            product: produtoCadatrado
+          }
+
+          this.shoppingListService.addProductToList(request).subscribe({
+            next: (result) => {
+              this.messageService.add({ severity: 'success', summary: 'Success', detail: `Produto ${produtoCadatrado.name} cadastrado com sucesso.` });
+              this.disableNewButton = false;
+              this.loadListas();
+            },
+            error: (err: HttpErrorResponse) => {
+              this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid Price' });
+            }
+          });
+        }
+      });
     }
-    this.disableNewButton = false;
-    this.loadListas();
   }
 
   onRowEditCancel(product: Produto, index: number) {

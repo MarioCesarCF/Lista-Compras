@@ -9,7 +9,8 @@
           <ng-template #caption>
             <div class="flex align-items-center justify-content-between">
               <span class="text-xl font-bold">Lista: {{ lista.title }}</span>
-              <p-button pRipple label="Produto" icon="pi pi-plus" class="p-button-sm" (click)="onAddNewRow(lista, table)" [disabled]="disableNewButton" />
+              <p-button pRipple label="Produto" icon="pi pi-plus" class="p-button-sm"
+                (click)="onAddNewRow(lista, table)" [disabled]="disableNewButton" />
             </div>
           </ng-template>
           <ng-template pTemplate="header">
@@ -31,9 +32,11 @@
                     (click)="onDeleteRow($event, rowData)" class="p-button-rounded p-button-text p-button-danger">
                   </button>
                   <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check"
-                    (click)="onRowEditSave(rowData)" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                    (click)="onRowEditSave(lista, rowData)"
+                    class="p-button-rounded p-button-text p-button-success mr-2"></button>
                   <button *ngIf="editing" pButton pRipple type="button" pCancelEditableRow icon="pi pi-times"
-                    (click)="onRowEditCancel(rowData, ri)" class="p-button-rounded p-button-text p-button-danger"></button>
+                    (click)="onRowEditCancel(rowData, ri)"
+                    class="p-button-rounded p-button-text p-button-danger"></button>
                 </div>
               </td>
               <td>
@@ -49,10 +52,16 @@
               <td>
                 <p-cellEditor>
                   <ng-template pTemplate="input">
-                    <input pInputText type="number" [(ngModel)]="rowData.unity" style="max-width: 5rem;" min="1" max="7" />
+                    <p-select [options]="unityOptions" [(ngModel)]="rowData.unity" appendTo="body" optionLabel="descricao">
+                      <ng-template let-unity pTemplate="item">
+                        <div class="unity-item">
+                          <div>{{ unity.descricao }}</div>
+                        </div>
+                      </ng-template>
+                    </p-select>
                   </ng-template>
                   <ng-template pTemplate="output">
-                    {{rowData.unity}}
+                    {{ rowData.unity?.descricao }}
                   </ng-template>
                 </p-cellEditor>
               </td>
