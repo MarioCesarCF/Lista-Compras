@@ -1,4 +1,4 @@
-export interface RemoveProdutoNaLista {
+export interface RemoveProdutoLista {
     listaComprasId: string;
-    itemListaId: string;
+    id?: string;
 }

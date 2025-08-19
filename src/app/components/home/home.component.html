@@ -7,7 +7,15 @@
     </div>
     <div class="col-12 md:col-4" *ngFor="let lista of listasCompras">
       <div class="card">
-        <p-toast />        
+        <p-confirmDialog #cd>
+          <ng-template pTemplate="footer">
+            <p-button label="Sim" (click)="cd.onAccept()" severity="danger" [outlined]="true" [autofocus]="true">
+            </p-button>
+            <p-button label="Não" (click)="cd.onReject()" [text]="true">
+            </p-button>
+          </ng-template>
+        </p-confirmDialog>
+        <p-toast />
         <p-table #table [value]="lista.itemLista" dataKey="id" editMode="row" class="p-datatable-sm w-full">
           <ng-template #caption>
             <div class="flex align-items-center justify-content-between">
@@ -32,7 +40,7 @@
                   <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil"
                     (click)="onRowEditInit(rowData)" class="p-button-rounded p-button-text"></button>
                   <button *ngIf="!editing" pButton pRipple type="button" icon="pi pi-trash" title="Excluir"
-                    (click)="onDeleteRow($event, rowData)" class="p-button-rounded p-button-text p-button-danger">
+                    (click)="onDeleteRow($event, rowData, lista)" class="p-button-rounded p-button-text p-button-danger">
                   </button>
                   <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check"
                     (click)="onRowEditSave(lista, rowData)"

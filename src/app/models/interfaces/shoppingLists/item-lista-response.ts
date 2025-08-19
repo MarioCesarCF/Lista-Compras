@@ -1,9 +1,9 @@
 import { EnumDTO } from "../enum-dto";
 
-export interface ItemListaToAdd {
+export interface ItemListaResponse {
     id?: string;
     nome?: string;
     quantidade?: number;
-    unidade?: number;
+    unidade?: EnumDTO<number>;
     situacao?: number;
 }

@@ -10,18 +10,21 @@ import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { RippleModule } from 'primeng/ripple';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { EnumDTO } from '../../models/interfaces/enum-dto';
 import { SelectModule } from 'primeng/select';
 import { ProductsService } from '../../services/products/products.service';
-import { ProdutoCreateRequest } from '../../models/interfaces/products/produto-create-request';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AdicionaProdutoNaLista } from '../../models/interfaces/shoppingLists/add-produto-lista';
-import { ItemLista } from '../../models/item-lista';
 import { DialogModule } from 'primeng/dialog';
 import { CriaListaCompras } from '../../models/interfaces/shoppingLists/cria-lista-compras';
 import { ItemListaToAdd } from '../../models/interfaces/products/item-lista-to-add';
+import { ItemListaResponse } from '../../models/interfaces/shoppingLists/item-lista-response';
+import { RemoveProdutoLista } from '../../models/interfaces/shoppingLists/remove-produto-lista';
+import { ItemLista } from '../../models/item-lista';
+import { AtualizaItemListaDto } from '../../models/interfaces/shoppingLists/atualiza-item-lista';
 
 @Component({
   selector: 'app-home',
@@ -37,17 +40,18 @@ import { ItemListaToAdd } from '../../models/interfaces/products/item-lista-to-a
     RippleModule,
     ToastModule,
     SelectModule,
-    DialogModule
+    DialogModule,
+    ConfirmDialogModule
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
-  providers: [MessageService]
+  providers: [MessageService, ConfirmationService]
 })
 export class HomeComponent {
   @ViewChild(Table, { read: Table }) pTable: Table | undefined;
   listasCompras!: ListaCompras[];
-  products!: Produto[];
-  clonedProducts: { [s: string]: Produto } = {};
+  products!: ItemListaResponse[];
+  clonedProducts: { [s: string]: ItemListaResponse } = {};
   disableNewButton: boolean = false;
   unityOptions!: EnumDTO<number>[];
   dialogVisible: boolean = false;
@@ -57,6 +61,7 @@ export class HomeComponent {
   constructor(
     private listaComprasService: ListaComprasService,
     private produtoService: ProductsService,
+    private confirmationService: ConfirmationService,
     private messageService: MessageService
   ) { }
 
@@ -69,17 +74,7 @@ export class HomeComponent {
     this.listaComprasService.getAll().subscribe({
       next: (result) => {
         this.listasCompras = result;
-        this.listasCompras.forEach(lista => {
-          lista.itemLista.forEach(item => {
-            let teste: EnumDTO<number> = {
-              descricao: "string",
-              nome: "string",
-              valor: 1
-            };
-            item.unidade = this.unityOptions.find(opt => opt.valor === item.unidade?.valor) ?? teste;
-          });
-        });
-        console.log(this.listasCompras)
+        console.log()
         this.limiteListas = this.listasCompras.length;
       }
     });
@@ -96,9 +91,30 @@ export class HomeComponent {
     return;
   }
 
-  onDeleteRow(event: Event, produto: Produto) {
-    console.log(`O produto ${produto.nome} será excluído aqui. Deve ter uma confirmação`)
-    return;
+  onDeleteRow(event: Event, produto: ItemLista, lista: ListaCompras) {
+    const removeRequest: RemoveProdutoLista = {
+      listaComprasId: lista.id,
+      id: produto.id
+    }
+
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: `Tem certeza que deseja remover o item ${produto.nome}`,
+      header: 'Confirmar Delete:',
+      icon: 'pi pi-info-circle',
+
+      accept: () => {        
+        this.listaComprasService.removeItemListaAsync(removeRequest).subscribe({
+          next: (result) => {
+            this.loadListas();           
+          }
+        });
+                
+        this.messageService.add({ severity: 'info', summary: 'Confirmed', detail: 'Item removido com sucesso!', life: 3000 }); 
+      },
+      reject: () => { this.loadListas(); }
+    });
+
   }
 
   marcaComoComprado(lista: ListaCompras, produto: Produto) {
@@ -114,27 +130,46 @@ export class HomeComponent {
     return;
   }
 
-  onRowEditInit(product: Produto) {
-    this.clonedProducts[product.id] = { ...product };
+  onRowEditInit(product: ItemListaResponse) {
+    this.clonedProducts[product.id as string] = { ...product };
   }
 
-  onRowEditSave(lista: ListaCompras, produto: Produto) {
+  onRowEditSave(lista: ListaCompras, produto: ItemListaResponse) {
+    console.log(produto)
     if (produto.id) {
-      //Edição aqui
+      const request: AtualizaItemListaDto = {
+        listaComprasId: lista.id,
+        id: produto.id,
+        nome: produto?.nome,
+        quantidade: produto?.quantidade,
+        unidade: produto.unidade?.valor,
+        situacao: produto?.situacao,
+      }
+
+      this.listaComprasService.updateItemNaListaAsync(request).subscribe({
+        next: (result) => {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: `Produto atualizado com sucesso.` });
+          this.disableNewButton = false;
+          this.loadListas();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Não foi possível atualizar o item.' });
+        }
+      })
     } else {
-      const itemLista: ItemListaToAdd = {
-        produtoId: '',
+      const createRequest: ItemListaToAdd = {
+        id: '',
         nome: produto.nome,
         quantidade: produto.quantidade,
-        unidade: produto.unidade.valor
+        unidade: produto.unidade?.valor
       }
 
       const request: AdicionaProdutoNaLista = {
         listaComprasId: lista.id,
-        itemLista: itemLista
+        itemLista: createRequest
       }
 
-      this.listaComprasService.addProductToList(request).subscribe({
+      this.listaComprasService.addItemListaAsync(request).subscribe({
         next: (result) => {
           this.messageService.add({ severity: 'success', summary: 'Success', detail: `Produto adicionado com sucesso.` });
           this.disableNewButton = false;

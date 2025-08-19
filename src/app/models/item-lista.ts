@@ -1,9 +1,9 @@
 import { EnumDTO } from "./interfaces/enum-dto";
 
 export interface ItemLista {
-    produtoId?: string;
+    id?: string;
     nome?: string;
-    quantidade: number;
-    unidade: EnumDTO<number>;
+    quantidade?: number;
+    unidade?: number;
     situacao?: number;
 }
