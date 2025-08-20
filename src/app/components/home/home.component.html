@@ -38,7 +38,7 @@
               <td>
                 <div class="flex align-items-center justify-content-center gap-2">
                   <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil"
-                    (click)="onRowEditInit(rowData)" class="p-button-rounded p-button-text"></button>
+                    (click)="onRowEditInit(rowData)" class="p-button-rounded p-button-text" [disabled]="rowData.situacao === 2"></button>
                   <button *ngIf="!editing" pButton pRipple type="button" icon="pi pi-trash" title="Excluir"
                     (click)="onDeleteRow($event, rowData, lista)" class="p-button-rounded p-button-text p-button-danger">
                   </button>
@@ -46,7 +46,7 @@
                     (click)="onRowEditSave(lista, rowData)"
                     class="p-button-rounded p-button-text p-button-success mr-2"></button>
                   <button *ngIf="editing" pButton pRipple type="button" pCancelEditableRow icon="pi pi-times"
-                    (click)="onRowEditCancel(rowData, ri)"
+                    (click)="onRowEditCancel(ri)"
                     class="p-button-rounded p-button-text p-button-danger"></button>
                 </div>
               </td>
@@ -88,7 +88,11 @@
                 </p-cellEditor>
               </td>
               <td>
-                <p-tableCheckbox [value]="rowData" />
+                @if (rowData.situacao === 1) {
+                  <p-button pRipple icon="pi pi-check" class="p-button-sm" (click)="alteraSituacaoItem(lista, rowData)" />
+                } @else {
+                  <p-button pRipple icon="pi pi-replay" class="p-button-sm" severity="secondary" (click)="alteraSituacaoItem(lista, rowData)" />
+                }
               </td>
             </tr>
           </ng-template>

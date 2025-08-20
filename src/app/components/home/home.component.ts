@@ -74,7 +74,6 @@ export class HomeComponent {
     this.listaComprasService.getAll().subscribe({
       next: (result) => {
         this.listasCompras = result;
-        console.log()
         this.limiteListas = this.listasCompras.length;
       }
     });
@@ -84,11 +83,6 @@ export class HomeComponent {
     this.produtoService.getUnitys().subscribe({
       next: (result) => this.unityOptions = result
     })
-  }
-
-  editProduct(produto: Produto) {
-    console.log(`O produto ${produto.nome} será editado aqui. Acho que pode ser edição inline`)
-    return;
   }
 
   onDeleteRow(event: Event, produto: ItemLista, lista: ListaCompras) {
@@ -115,15 +109,6 @@ export class HomeComponent {
       reject: () => { this.loadListas(); }
     });
 
-  }
-
-  marcaComoComprado(lista: ListaCompras, produto: Produto) {
-    console.log("A situação do produto é alterada para Inativo")
-    return;
-  }
-
-  addProduct(lista: ListaCompras) {
-    return;
   }
 
   deleteList(lista: ListaCompras) {
@@ -182,7 +167,7 @@ export class HomeComponent {
     }
   }
 
-  onRowEditCancel(product: Produto, index: number) {
+  onRowEditCancel(sindex: number) {
     this.disableNewButton = false;
     this.loadListas();
   }
@@ -216,5 +201,31 @@ export class HomeComponent {
       })
     }
     this.dialogVisible = false;
+  }
+
+  alteraSituacaoItem(lista: ListaCompras, produto: ItemListaResponse) {
+    produto.situacao === 1 ? produto.situacao = 2 : produto.situacao = 1;
+
+    if (produto.id) {
+      const request: AtualizaItemListaDto = {
+        listaComprasId: lista.id,
+        id: produto.id,
+        nome: produto?.nome,
+        quantidade: produto?.quantidade,
+        unidade: produto.unidade?.valor,
+        situacao: produto?.situacao,
+      }
+
+      this.listaComprasService.updateItemNaListaAsync(request).subscribe({
+        next: (result) => {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: `Produto atualizado com sucesso.` });
+          this.disableNewButton = false;
+          this.loadListas();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Não foi possível atualizar o item.' });
+        }
+      })
+    }
   }
 }
