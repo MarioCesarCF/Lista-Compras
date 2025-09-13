@@ -7,6 +7,7 @@ import { AdicionaProdutoNaLista } from '../../models/interfaces/shoppingLists/ad
 import { CriaListaCompras } from '../../models/interfaces/shoppingLists/cria-lista-compras';
 import { RemoveProdutoLista } from '../../models/interfaces/shoppingLists/remove-produto-lista';
 import { AtualizaItemListaDto } from '../../models/interfaces/shoppingLists/atualiza-item-lista';
+import { API_PATH } from '../../models/environment/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -15,32 +16,35 @@ export class ListaComprasService {
   private listaComprasSubject = new BehaviorSubject<ListaCompras[]>([]);
   public listaCompras$ = this.listaComprasSubject.asObservable();
 
-  API_PATH = "https://localhost:7050/api";
   controller = "listacompras";
 
   private httpClient = inject(HttpClient);
 
   getAll(): Observable<ListaCompras[]> {
-    return this.httpClient.get<ListaCompras[]>(`${this.API_PATH}/${this.controller}`);
+    return this.httpClient.get<ListaCompras[]>(`${API_PATH}/${this.controller}`);
   }
 
   createList(params: CriaListaCompras): Observable<ListaCompras> {
-    return this.httpClient.post<ListaCompras>(`${this.API_PATH}/${this.controller}`, params)
+    return this.httpClient.post<ListaCompras>(`${API_PATH}/${this.controller}`, params)
   }
 
   updateList(params: ListaComprasUpdateRequest): Observable<void> {
-    return this.httpClient.put<void>(`${this.API_PATH}/${this.controller}`, params)
+    return this.httpClient.put<void>(`${API_PATH}/${this.controller}`, params)
   }
 
   addItemListaAsync(request: AdicionaProdutoNaLista): Observable<void>{
-    return this.httpClient.post<void>(`${this.API_PATH}/${this.controller}/add-item`, request)
+    return this.httpClient.post<void>(`${API_PATH}/${this.controller}/add-item`, request)
   }
 
   removeItemListaAsync(request: RemoveProdutoLista): Observable<void> {
-    return this.httpClient.post<void>(`${this.API_PATH}/${this.controller}/remove-item`, request)
+    return this.httpClient.post<void>(`${API_PATH}/${this.controller}/remove-item`, request)
   }
 
   updateItemNaListaAsync(request: AtualizaItemListaDto): Observable<void> {
-    return this.httpClient.post<void>(`${this.API_PATH}/${this.controller}/edit-item`, request)
+    return this.httpClient.post<void>(`${API_PATH}/${this.controller}/edit-item`, request)
+  }
+
+  deleteLista(id: string): Observable<void> {
+    return this.httpClient.delete<void>(`${API_PATH}/${this.controller}/${id}`)
   }
 }

@@ -1,5 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { Produto } from '../../models/produto';
 import { HeaderComponent } from '../header/header.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -71,6 +70,7 @@ export class HomeComponent {
   }
 
   loadListas(): void {
+    console.log("teste")
     this.listaComprasService.getAll().subscribe({
       next: (result) => {
         this.listasCompras = result;
@@ -108,11 +108,6 @@ export class HomeComponent {
       },
       reject: () => { this.loadListas(); }
     });
-
-  }
-
-  deleteList(lista: ListaCompras) {
-    return;
   }
 
   onRowEditInit(product: ItemListaResponse) {
@@ -227,5 +222,25 @@ export class HomeComponent {
         }
       })
     }
+  }
+
+  deletarLista(event: Event ,lista: ListaCompras): void {
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: `Tem certeza que deseja remover a lista ${lista.nome}`,
+      header: 'Confirmar Delete:',
+      icon: 'pi pi-info-circle',
+
+      accept: () => {        
+        this.listaComprasService.deleteLista(lista.id).subscribe({
+          next: (result) => {
+            this.loadListas();           
+          }
+        });
+                
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Lista deletada com sucesso com sucesso.`, life: 3000 })
+      },
+      reject: () => { this.loadListas(); }
+    });
   }
 }

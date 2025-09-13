@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { EnumDTO } from '../../models/interfaces/enum-dto';
 import { ProdutoCreateRequest } from '../../models/interfaces/products/produto-create-request';
+import { API_PATH } from '../../models/environment/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -12,20 +13,19 @@ export class ProductsService {
   private productsSubject = new BehaviorSubject<Produto[]>([]);
   public product$ = this.productsSubject.asObservable();
 
-  API_PATH = "https://localhost:7050/api";
   controller = "produto";
 
   private httpClient = inject(HttpClient);
 
   getAll(): Observable<Produto[]> {
-    return this.httpClient.get<Produto[]>(`${this.API_PATH}/${this.controller}`);
+    return this.httpClient.get<Produto[]>(`${API_PATH}/${this.controller}`);
   }
 
   getUnitys(): Observable<EnumDTO<number>[]> {
-    return this.httpClient.get<EnumDTO<number>[]>(`${this.API_PATH}/${this.controller}/unidades`);
+    return this.httpClient.get<EnumDTO<number>[]>(`${API_PATH}/${this.controller}/unidades`);
   }
 
   createProduto(params: ProdutoCreateRequest): Observable<Produto> {
-    return this.httpClient.post<Produto>(`${this.API_PATH}/${this.controller}`, params);
+    return this.httpClient.post<Produto>(`${API_PATH}/${this.controller}`, params);
   }
 }

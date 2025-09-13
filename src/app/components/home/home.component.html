@@ -16,12 +16,19 @@
           </ng-template>
         </p-confirmDialog>
         <p-toast />
-        <p-table #table [value]="lista.itemLista" dataKey="id" editMode="row" class="p-datatable-sm w-full">
+        <p-table 
+          #table
+          [value]="lista.itemLista" 
+          dataKey="id" 
+          editMode="row" 
+          class="p-datatable-sm w-full">
           <ng-template #caption>
-            <div class="flex align-items-center justify-content-between">
+            <div class="flex align-items-center justify-content-between flex-wrap gap-2">
               <span class="text-xl font-bold">Lista: {{ lista.nome }}</span>
-              <p-button pRipple label="Produto" icon="pi pi-plus" class="p-button-sm"
-                (click)="onAddNewRow(lista, table)" [disabled]="disableNewButton" />
+              <div>
+                <p-button pRipple label="Produto" icon="pi pi-plus" class="p-button-sm" title="Adiciona um novo item na lista" (click)="onAddNewRow(lista, table)" [disabled]="disableNewButton" />
+                <p-button pRipple icon="pi pi-trash" class="p-button-sm" severity="danger" title="Deleta a lista de compras" (click)="deletarLista($event, lista)" />
+              </div>
             </div>
           </ng-template>
           <ng-template pTemplate="header">
@@ -52,10 +59,10 @@
               </td>
               <td>
                 <p-cellEditor>
-                  <ng-template pTemplate="input">
-                    <input pInputText type="text" [(ngModel)]="rowData.nome" style="max-width: 10rem;" />
+                  <ng-template #input>
+                    <input pInputText type="text" [(ngModel)]="rowData.nome" />
                   </ng-template>
-                  <ng-template pTemplate="output">
+                  <ng-template #output>
                     {{rowData.nome}}
                   </ng-template>
                 </p-cellEditor>
