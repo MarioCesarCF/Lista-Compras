@@ -25,10 +25,11 @@ export class LoginComponent {
     const email = this.email;
     const password = this.password;
 
-    await this.httpClient.post(`${API_PATH}/user/login`, { email, password })
+    await this.httpClient.post(`${API_PATH}/auth/login`, { email, password })
       .subscribe({
         next: (response: any) => {
           localStorage.setItem('token', response.token);
+          localStorage.setItem('refreshToken', response.refreshToken);
           localStorage.setItem('userName', response.userName);
           localStorage.setItem('userId', response.userId);
 

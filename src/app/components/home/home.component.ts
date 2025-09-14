@@ -70,7 +70,6 @@ export class HomeComponent {
   }
 
   loadListas(): void {
-    console.log("teste")
     this.listaComprasService.getAll().subscribe({
       next: (result) => {
         this.listasCompras = result;
@@ -115,7 +114,6 @@ export class HomeComponent {
   }
 
   onRowEditSave(lista: ListaCompras, produto: ItemListaResponse) {
-    console.log(produto)
     if (produto.id) {
       const request: AtualizaItemListaDto = {
         listaComprasId: lista.id,
@@ -176,7 +174,7 @@ export class HomeComponent {
     table.initRowEdit(addProduct);
   }
 
-  onAddNewLista() {
+  onAddNewLista() {  
     this.dialogVisible = true;
   }
 
